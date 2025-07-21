@@ -4,6 +4,8 @@
 \usepackage[serbian]{babel}
 \usepackage{hyperref}
 \usepackage{tocloft}
+\usepackage{float}
+
 
 \begin{document}
 
@@ -47,12 +49,51 @@ Asistent Stefan Kapunac \> Đurđa Milošević 84/2021 \\
 
 \tableofcontents
 
+\newpage
+
 \section{Uvod}
+Randomizovani potpuni blok dizajn (RCBD) predstavlja jedan od najčešćih modela u eksperimentalnom planiranju, naročito u poljoprivredi, biologiji i industrijskim eksperimentima. Njegova glavna prednost je kontrola varijabilnosti pomoću blokova, pri čemu se svaki tretman pojavljuje tačno jednom u svakom bloku.
 
+U praksi, RCBD podaci često sadrže nedostajuće vrednosti usled grešaka u merenju, neuspelih merenja ili drugih faktora. Prisustvo takvih vrednosti narušava balansiranost dizajna i otežava standardnu statističku analizu, kao što je ANOVA.
 
+Do sada su se koristile različite metode za imputaciju: aproksimativne formule bazirane na srednjim vrednostima, regresione metode, neuronske mreže, čestična optimizacija (PSO) i genetski algoritmi (GA). Rad Azadeh et al. (2013) pokazao je da GA može uspešno proceniti nedostajuće vrednosti u RCBD tabelama, pri čemu su se koristile metrike poput MAPE i Pearsonove korelacije.
+
+U ovom radu razvijamo sopstvenu implementaciju genetskog algoritma za procenu nedostajućih vrednosti u RCBD-u, zasnovanu na idejama iz pomenutog rada. Implementacija je pisana od nule u Python-u, uz korišćenje funkcije cilja zasnovane na sumi kvadrata grešaka (SSE). Fokus je na razumevanju i demonstraciji metode, kroz testiranje na sintetički generisanim podacima.
+
+\newpage
 \section{Teorijska osnova}
 \subsection{Randomizovani kompletni blok dizajn (RCBD)}
+
+Statisticka istrazivanja su prisutna skoro u svim poslovnim i naucnim poljima. Treba razumeti da se pod statistickim eksperimentom misli na istrazivanje koje ukljucuje uzorcno-posledicnu vezu, odnosno interesuje nas da li neki faktor kada se primeni nad ispitanicima prouzrokuje neki efekat. Kako je vazno da rezultati eksperimenata budu precizni, pouzdani i nepristrasni dolazi se do toga da ih je potrebno nekako dizajnirati.
+
+Randomizovani kompletni blok dizajn (RCBD) je jedan od najčešće korišćenih eksperimenata u poljoprivredi, biologiji i industriji, gde su faktori pod uticajem varijacija koje nisu predmet posmatranja. Cilj RCBD-a je da eliminiše ili smanji uticaj tzv. „sporednih faktora“ koji mogu uticati na rezultate eksperimenta, tako što se eksperimentalne jedinice grupišu u blokove unutar kojih su ti faktori ujednačeni.
+
+U RCBD-u svaki tretman (npr. tip đubriva, lek, uslov okoline) se pojavljuje tačno jednom u svakom bloku. Dakle, ako postoji t tretmana i b blokova, broj posmatranja je t × b.
+
+Radi boljeg razumevanja strukture RCBD eksperimenta, na slici ispod prikazan je tipičan primer RCBD rasporeda za sedam tretmana raspoređenih u tri bloka:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{./primer_rcbd.png}
+    \textit{\caption{Primer rasporeda tretmana u randomizovanom kompletnom blok dizajnu}}
+    \label{fig:rcbd_primer}
+\end{figure}
+
+Slika prikazuje kako se tretmani (T1, T2, ..., T7) nasumično raspoređuju unutar svakog bloka (B1, B2, B3), pri čemu se svaki tretman pojavljuje tačno jednom po bloku. Ovakav raspored omogućava da se efekti tretmana analiziraju nezavisno od efekata blokova, uz zadržavanje statističke snage eksperimenta. Ključne prednosti RCBD-a su jednostavnost primene, efikasna kontrola sporednih faktora i dobra interpretabilnost rezultata.
+
+RCBD se često analizira primenom analize varijanse (ANOVA), uz pretpostavku da su svi podaci dostupni. Međutim, u stvarnim eksperimentalnim uslovima može doći do gubitka podataka – npr. merenje nije uspešno obavljeno, eksperimentalna jedinica je uništena ili je rezultat zabeležen pogrešno. Takvi nedostaci onemogućavaju direktnu primenu ANOVA i drugih standardnih statističkih metoda, jer one zahtevaju kompletnu tabelu. Iz tog razloga se istražuju metode za procenu nedostajućih vrednosti u RCBD tabelama. U ovom projektu fokus je upravo na razvoju jedne takve metode – na bazi genetskog algoritma.
+
+
+
+
 \subsection{Genetski algoritam (GA)}
+Genetski algoritam (GA) je heuristička optimizaciona tehnika inspirisana principima prirodne selekcije i genetike, razvijena u okviru evolutivnog računanja. GA se koristi za pronalaženje dobrih (često približnih) rešenja u kompleksnim optimizacionim problemima gde klasične metode ne daju zadovoljavajuće rezultate ili nisu primenljive.
+
+Genetski algoritam je osmisljen tako da imitira proces evolucije koja podrazumeva promenu naslednih osobina populacije kroz generacije. Osnovna ideja GA jeste da se potencijalna rešenja problema predstavljaju kao hromozomi (nizovi podataka), koji se grupišu u populaciju. Na osnovu vrednosti ciljne funkcije (fitness), jedinke se selektuju za razmnožavanje korišćenjem operatora kao što su ukrštanje (crossover) i mutacija. Cilj je da se vremenom (kroz više generacija) evoluira populacija u pravcu boljih rešenja.
+
+U kontekstu procene nedostajućih vrednosti u RCBD-u, svaka jedinka predstavlja moguću kombinaciju vrednosti koje nedostaju. Ciljna funkcija (fitness funkcija) meri koliko je ta pretpostavljena vrednost „dobra“, u smislu minimizacije greške (npr. u našem slučaju, sume kvadratnih grešaka – SSE) u odnosu na poznate vrednosti. GA iterativno menja populaciju rešenja dok ne pronađe ono koje najbolje popunjava praznine u RCBD tabeli.
+
+Zahvaljujući svojoj fleksibilnosti i sposobnosti da izbegne lokalne minimume, GA predstavlja efikasno rešenje u problemima imputacije podataka gde je broj mogućih kombinacija veliki, a sistemska greška teško modelabilna.
 
 
 \section{Opis rešenja}
@@ -76,6 +117,32 @@ Asistent Stefan Kapunac \> Đurđa Milošević 84/2021 \\
 \item Moguće unapređenje i budući rad
 \end{itemize}
 
+
 \section{Literatura}
+\begin{itemize}
+
+\item\textbf{Montgomery, D. C. (2017). Design and Analysis of Experiments (9th ed.). Wiley.}
+
+\url{https://www.researchgate.net/publication/362079778_Design_and_Analysis_of_Experiments_9th_Edition}
+
+\item\textbf{Gomez, K. A., & Gomez, A. A. (1984). Statistical Procedures for Agricultural Research (2nd ed.). John Wiley & Sons.}
+
+\url{https://books.google.rs/books/about/Statistical_Procedures_for_Agricultural.html?id=PVN7_XRhpdUC&redir_esc=y}
+
+\item\textbf{Quantitative Methods for Plant Breeding
+by Ken Moore; M. L. Harbur; Ron Mowers; Laura Merrick; Dennis Todey; Kendra Meade; William Beavis; Reka Howard; Ursula Frei; Anthony Assibi Mahama; and Walter Suza}
+
+\url{https://iastate.pressbooks.pub/quantitativeplantbreeding/chapter/randomized-complete-block-design/}
+
+\item\textbf{Goldberg, D. E. (1989). Genetic Algorithms in Search, Optimization and Machine Learning. Addison-Wesley.}
+
+\url{https://www2.fiit.stuba.sk/~kvasnicka/Free%20books/Goldberg_Genetic_Algorithms_in_Search.pdf}
+
+\item\textbf{Genetski algoritam za resavanje lokacijskog problema snabdevača ograničenog kapaciteta u više nivoa. Diplomski master rad koleginice Biljane Borak}
+
+\url{http://elibrary.matf.bg.ac.rs/bitstream/handle/123456789/1894/genetski%20algoritam.pdf?sequence=1}
+
+\end{itemize}
+
 
 \end{document}
